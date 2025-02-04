@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { generateRandomAlphanumericCode } from 'src/common/utils/code-generator';
-import { CloudinaryService } from 'src/config/cloudinary/cloudinary.service';
-import { PrismaService } from 'src/config/prisma/prisma.service';
+import { generateRandomAlphanumericCode } from '../common/utils/code-generator';
+import { CloudinaryService } from '../config/cloudinary/cloudinary.service';
+import { PrismaService } from '../config/prisma/prisma.service';
 
 @Injectable()
 export class PhotographiesService {
