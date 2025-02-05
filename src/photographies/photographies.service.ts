@@ -12,6 +12,19 @@ export class PhotographiesService {
 
   async uploadPhotography(image: Express.Multer.File) {
     const uploadedImage = await this.cloudinaryService.uploadFile(image);
+    let code: string;
+
+    do {
+      code = generateRandomAlphanumericCode();
+      const existingPhotography =
+        await this.prismaService.photography.findFirst({
+          where: {
+            code: code,
+          },
+        });
+
+      if (!existingPhotography) break;
+    } while (true);
 
     const photography = await this.prismaService.photography.create({
       data: {
@@ -19,7 +32,7 @@ export class PhotographiesService {
         public_id: uploadedImage.public_id,
         width: uploadedImage.width,
         height: uploadedImage.height,
-        code: generateRandomAlphanumericCode(),
+        code,
       },
     });
 
@@ -54,9 +67,12 @@ export class PhotographiesService {
   }
 
   async getPhotographyByCode(code: string) {
-    const photography = await this.prismaService.photography.findUnique({
+    const photography = await this.prismaService.photography.findFirst({
       where: {
-        code,
+        code: {
+          equals: code,
+          mode: 'insensitive',
+        },
       },
     });
 
