@@ -43,7 +43,7 @@ export class PhotographiesService {
       };
       const photography = await this.prismaService.photography.create({
         data: {
-          url: uploadedImage.url,
+          url: uploadedImage.secure_url,
           public_id: uploadedImage.public_id,
           width: uploadedImage.width,
           height: uploadedImage.height,
@@ -92,7 +92,7 @@ export class PhotographiesService {
 
       // Crear objetos de datos para insertar en la base de datos
       const photographiesData = uploadedImages.map((uploadedImage) => ({
-        url: uploadedImage.url,
+        url: uploadedImage.secure_url,
         public_id: uploadedImage.public_id,
         width: uploadedImage.width,
         height: uploadedImage.height,
