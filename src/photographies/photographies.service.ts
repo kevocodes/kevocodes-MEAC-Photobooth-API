@@ -6,6 +6,7 @@ import {
 import { generateRandomAlphanumericCode } from '../common/utils/code-generator';
 import { CloudinaryService } from '../config/cloudinary/cloudinary.service';
 import { PrismaService } from '../config/prisma/prisma.service';
+import { BANNED_WORDS } from 'src/common/constants/bannedWords';
 
 @Injectable()
 export class PhotographiesService {
@@ -15,35 +16,48 @@ export class PhotographiesService {
   ) {}
 
   async uploadPhotography(image: Express.Multer.File) {
-    const uploadedImage = await this.cloudinaryService.uploadFile(image);
-    let code: string;
+    try {
+      const uploadedImage = await this.cloudinaryService.uploadFile(image);
 
-    do {
-      code = generateRandomAlphanumericCode(3);
-      const existingPhotography =
-        await this.prismaService.photography.findFirst({
-          where: {
-            code: code,
-          },
-        });
+      // Generar códigos únicos para todas las imágenes
+      const codes = new Set<string>();
+      const existingCodes = new Set(
+        (
+          await this.prismaService.photography.findMany({
+            select: { code: true },
+          })
+        ).map((photo) => photo.code),
+      );
 
-      if (!existingPhotography) break;
-    } while (true);
+      const generateUniqueCode = () => {
+        let code;
+        do {
+          code = generateRandomAlphanumericCode(3);
+        } while (
+          codes.has(code) ||
+          existingCodes.has(code) ||
+          BANNED_WORDS.includes(code)
+        );
+        codes.add(code);
+        return code;
+      };
+      const photography = await this.prismaService.photography.create({
+        data: {
+          url: uploadedImage.url,
+          public_id: uploadedImage.public_id,
+          width: uploadedImage.width,
+          height: uploadedImage.height,
+          code: generateUniqueCode(),
+        },
+      });
 
-    const photography = await this.prismaService.photography.create({
-      data: {
-        url: uploadedImage.url,
-        public_id: uploadedImage.public_id,
-        width: uploadedImage.width,
-        height: uploadedImage.height,
-        code,
-      },
-    });
-
-    return {
-      data: photography,
-      message: 'Photography uploaded successfully',
-    };
+      return {
+        data: photography,
+        message: 'Photography uploaded successfully',
+      };
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
   }
 
   async uploadPhotographies(images: Express.Multer.File[]) {
@@ -67,7 +81,11 @@ export class PhotographiesService {
         let code;
         do {
           code = generateRandomAlphanumericCode(3);
-        } while (codes.has(code) || existingCodes.has(code));
+        } while (
+          codes.has(code) ||
+          existingCodes.has(code) ||
+          BANNED_WORDS.includes(code)
+        );
         codes.add(code);
         return code;
       };
