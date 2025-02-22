@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   Post,
+  Query,
   UploadedFile,
   UploadedFiles,
   UseInterceptors,
@@ -14,6 +15,7 @@ import { ApiBody, ApiConsumes } from '@nestjs/swagger';
 import { ApiResponse } from '../common/types/response.type';
 import { getParseImagePipe } from '../common/utils/get-parse-file-pipe';
 import { MongoIdPipe } from '../common/pipes/mongo-id.pipe';
+import { FindAllPhotographiesDto } from './dtos/photographies.dto';
 
 @Controller('photographies')
 export class PhotographiesController {
@@ -67,8 +69,8 @@ export class PhotographiesController {
   }
 
   @Get()
-  async getPhotographies(): Promise<ApiResponse> {
-    return await this.photographiesService.getPhotographies();
+  async getPhotographies(@Query() query: FindAllPhotographiesDto): Promise<ApiResponse> {
+    return await this.photographiesService.getPhotographies(query);
   }
 
   @Get(':id')

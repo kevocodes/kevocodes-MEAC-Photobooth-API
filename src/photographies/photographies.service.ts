@@ -7,6 +7,7 @@ import { generateRandomAlphanumericCode } from '../common/utils/code-generator';
 import { CloudinaryService } from '../config/cloudinary/cloudinary.service';
 import { PrismaService } from '../config/prisma/prisma.service';
 import { BANNED_WORDS } from '../common/constants/bannedWords';
+import { FindAllPhotographiesDto } from './dtos/photographies.dto';
 
 @Injectable()
 export class PhotographiesService {
@@ -113,8 +114,14 @@ export class PhotographiesService {
     }
   }
 
-  async getPhotographies() {
-    const photographies = await this.prismaService.photography.findMany();
+  async getPhotographies(query: FindAllPhotographiesDto) {
+    const { order = 'asc' } = query;
+
+    const photographies = await this.prismaService.photography.findMany({
+      orderBy: {
+        createdAt: order,
+      },
+    });
 
     return {
       data: photographies,
