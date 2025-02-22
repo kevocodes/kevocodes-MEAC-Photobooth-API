@@ -6,7 +6,7 @@ import {
 import { generateRandomAlphanumericCode } from '../common/utils/code-generator';
 import { CloudinaryService } from '../config/cloudinary/cloudinary.service';
 import { PrismaService } from '../config/prisma/prisma.service';
-import { BANNED_WORDS } from 'src/common/constants/bannedWords';
+import { BANNED_WORDS } from '../common/constants/bannedWords';
 
 @Injectable()
 export class PhotographiesService {
