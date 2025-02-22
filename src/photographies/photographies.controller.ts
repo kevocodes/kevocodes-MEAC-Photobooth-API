@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Delete,
   Get,
@@ -11,11 +12,14 @@ import {
 } from '@nestjs/common';
 import { PhotographiesService } from './photographies.service';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
-import { ApiBody, ApiConsumes } from '@nestjs/swagger';
+import { ApiBody, ApiConsumes, ApiQuery } from '@nestjs/swagger';
 import { ApiResponse } from '../common/types/response.type';
 import { getParseImagePipe } from '../common/utils/get-parse-file-pipe';
 import { MongoIdPipe } from '../common/pipes/mongo-id.pipe';
-import { FindAllPhotographiesDto } from './dtos/photographies.dto';
+import {
+  DeletePhotographiesByIdsDTO,
+  FindAllPhotographiesDto,
+} from './dtos/photographies.dto';
 
 @Controller('photographies')
 export class PhotographiesController {
@@ -68,8 +72,11 @@ export class PhotographiesController {
     return await this.photographiesService.uploadPhotographies(images);
   }
 
+  @ApiQuery({ name: 'order', required: false, type: 'string', enum: ['asc', 'desc'] })
   @Get()
-  async getPhotographies(@Query() query: FindAllPhotographiesDto): Promise<ApiResponse> {
+  async getPhotographies(
+    @Query() query: FindAllPhotographiesDto,
+  ): Promise<ApiResponse> {
     return await this.photographiesService.getPhotographies(query);
   }
 
@@ -87,14 +94,20 @@ export class PhotographiesController {
     return await this.photographiesService.getPhotographyByCode(code);
   }
 
-  @Delete('/all') 
+  @Delete('/all')
   async deleteAll(): Promise<ApiResponse> {
     return await this.photographiesService.deleteAll();
+  }
+
+  @Delete('/delete-multiple')
+  async deleteMultiple(
+    @Body() body: DeletePhotographiesByIdsDTO,
+  ): Promise<ApiResponse> {
+    return await this.photographiesService.deleteByIds(body.ids);
   }
 
   @Delete(':id')
   async delete(@Param('id', MongoIdPipe) id: string): Promise<ApiResponse> {
     return await this.photographiesService.delete(id);
   }
-
 }

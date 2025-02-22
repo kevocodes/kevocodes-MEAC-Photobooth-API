@@ -208,4 +208,43 @@ export class PhotographiesService {
       data: null,
     };
   }
+
+  async deleteByIds(ids: string[]) {
+    const photographies = await this.prismaService.photography.findMany({
+      where: {
+        id: {
+          in: ids,
+        },
+      },
+    });
+
+    if (photographies.length === 0)
+      throw new NotFoundException('Photographies not found');
+
+    const requests = Math.ceil(photographies.length / 100);
+
+    await Promise.all([
+      this.prismaService.photography.deleteMany({
+        where: {
+          id: {
+            in: ids,
+          },
+        },
+      }),
+      ...Array(requests)
+        .fill(0)
+        .map((_, index) => {
+          const start = index * 100;
+          const end = start + 100;
+          return this.cloudinaryService.deleteFiles(
+            photographies.slice(start, end).map((photo) => photo.public_id),
+          );
+        }),
+    ]);
+
+    return {
+      message: 'Photographies deleted successfully',
+      data: null,
+    };
+  }
 }
